@@ -6,7 +6,11 @@ import (
 
 	domainDevice "github.com/aldinokemal/go-whatsapp-web-multidevice/domains/device"
 	"github.com/aldinokemal/go-whatsapp-web-multidevice/infrastructure/whatsapp"
+	pkgError "github.com/aldinokemal/go-whatsapp-web-multidevice/pkg/error"
 	"github.com/aldinokemal/go-whatsapp-web-multidevice/ui/websocket"
+	"github.com/aldinokemal/go-whatsapp-web-multidevice/validations"
+	"github.com/sirupsen/logrus"
+	"go.mau.fi/whatsmeow"
 )
 
 type serviceDevice struct {
@@ -68,8 +72,46 @@ func (s *serviceDevice) LoginDevice(_ context.Context, _ string) error {
 	return fmt.Errorf("device login per ID is not implemented yet")
 }
 
-func (s *serviceDevice) LoginDeviceWithCode(_ context.Context, _ string, _ string) (string, error) {
-	return "", fmt.Errorf("device login with code is not implemented yet")
+func (s *serviceDevice) LoginDeviceWithCode(ctx context.Context, deviceID string, phone string) (string, error) {
+	if err := validations.ValidateLoginWithCode(ctx, phone); err != nil {
+		return "", err
+	}
+
+	if s.manager == nil {
+		return "", fmt.Errorf("device manager not initialized")
+	}
+
+	inst, err := s.manager.EnsureClient(ctx, deviceID)
+	if err != nil {
+		return "", err
+	}
+
+	client := inst.GetClient()
+	if client == nil {
+		return "", pkgError.ErrWaCLI
+	}
+
+	if client.IsLoggedIn() {
+		inst.UpdateStateFromClient()
+		return "", pkgError.ErrAlreadyLoggedIn
+	}
+
+	if !client.IsConnected() {
+		if err := client.Connect(); err != nil {
+			return "", err
+		}
+	}
+
+	logrus.Infof("[LOGIN_CODE][%s] Starting phone pairing for number: %s", deviceID, phone)
+	code, err := client.PairPhone(ctx, phone, true, whatsmeow.PairClientChrome, "Chrome (Linux)")
+	if err != nil {
+		logrus.Errorf("[LOGIN_CODE][%s] Error when pairing phone: %v", deviceID, err)
+		return "", err
+	}
+
+	inst.UpdateStateFromClient()
+	logrus.Infof("[LOGIN_CODE][%s] Successfully generated pairing code", deviceID)
+	return code, nil
 }
 
 func (s *serviceDevice) LogoutDevice(ctx context.Context, deviceID string) error {
