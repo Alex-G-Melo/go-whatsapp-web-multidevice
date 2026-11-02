@@ -17,7 +17,7 @@ func (e SendAccountError) StatusCode() int {
 }
 
 const (
-	ErrSendAccountInvalid  = SendAccountError("SEND_ACCOUNT_INVALID")
-	ErrSendAccountMismatch = SendAccountError("SEND_ACCOUNT_MISMATCH")
+	ErrSendAccountInvalid        = SendAccountError("SEND_ACCOUNT_INVALID")
+	ErrSendAccountMismatch       = SendAccountError("SEND_ACCOUNT_MISMATCH")
 	ErrSendAccountOutcomeUnknown = SendAccountError("SEND_ACCOUNT_OUTCOME_UNKNOWN")
 )
