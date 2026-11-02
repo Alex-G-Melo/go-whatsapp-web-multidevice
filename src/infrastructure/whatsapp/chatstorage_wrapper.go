@@ -2,6 +2,7 @@ package whatsapp
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	domainChatStorage "github.com/aldinokemal/go-whatsapp-web-multidevice/domains/chatstorage"
@@ -101,6 +102,17 @@ func (r *deviceChatStorage) GetMessageByIDAndDevice(deviceID, id string) (*domai
 		targetDeviceID = r.deviceID
 	}
 	return r.base.GetMessageByIDAndDevice(targetDeviceID, id)
+}
+
+func (r *deviceChatStorage) GetMessageByIDChatAndDevice(deviceID, chatJID, id string) (*domainChatStorage.Message, error) {
+	targetDeviceID := deviceID
+	if targetDeviceID == "" {
+		targetDeviceID = r.deviceID
+	}
+	if targetDeviceID != r.deviceID {
+		return nil, fmt.Errorf("device scope mismatch")
+	}
+	return r.base.GetMessageByIDChatAndDevice(targetDeviceID, chatJID, id)
 }
 
 func (r *deviceChatStorage) GetMessageEdits(originalMessageID, deviceID string) ([]*domainChatStorage.MessageEdit, error) {

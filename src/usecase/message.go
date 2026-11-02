@@ -24,7 +24,8 @@ import (
 )
 
 type serviceMessage struct {
-	chatStorageRepo domainChatStorage.IChatStorageRepository
+	chatStorageRepo  domainChatStorage.IChatStorageRepository
+	downloadOriginal func(context.Context, *whatsmeow.Client, whatsmeow.DownloadableMessage, whatsmeow.File) error
 }
 
 func NewMessageService(chatStorageRepo domainChatStorage.IChatStorageRepository) domainMessage.IMessageUsecase {
@@ -277,7 +278,10 @@ func (service serviceMessage) DownloadMedia(ctx context.Context, request domainM
 	}
 
 	// Query the message from chat storage
-	message, err := service.chatStorageRepo.GetMessageByID(request.MessageID)
+	if client.Store == nil || client.Store.ID == nil || service.chatStorageRepo == nil {
+		return response, fmt.Errorf("device identification required")
+	}
+	message, err := service.chatStorageRepo.GetMessageByIDChatAndDevice(client.Store.ID.ToNonAD().String(), dataWaRecipient.String(), request.MessageID)
 	if err != nil {
 		return response, fmt.Errorf("message not found: %v", err)
 	}

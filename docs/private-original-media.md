@@ -1,0 +1,15 @@
+# Private original-media contract (not deployment qualification)
+
+`GET /message/{message_id}/original` requires configured Basic authentication and an explicit `X-Device-Id` slot selector. Query parameters are `chat_jid`, `expected_device_jid`, `expected_sha256` and `mime_type`. The two JIDs must be exact PN JIDs (`digits@s.whatsapp.net`); LID aliases/groups are unsupported. The selected client's physical JID must match the expected original JID. A slot UUID alone is never original-account proof.
+
+Only the exact stored device/chat/message row may supply an incoming image, audio or document. Its sender must equal that direct chat; its stored WhatsApp plaintext SHA256 must equal the caller's admitted digest. Stored media keys and encrypted digest are required. A mismatched/missing original fails closed; no static media URL or mutable phone alias fallback occurs.
+
+The SDK downloads into a private 0600 temporary file through an explicit size-limited `whatsmeow.File` implementation. The ciphertext limit allows only the fixed 25 MiB plaintext budget plus one padding block and MAC. Writes, random writes, seeks and truncations are bounded; the wrapper does not expose `ReaderFrom`. Retrieval has a 20-second context deadline. After SDK decryption, size and plaintext SHA256 are independently checked, regardless of global SDK warning flags. The exact row and selected physical client are checked again before returning bytes. The temporary file is closed and removed; no file is written into the public static tree.
+
+Success returns bytes and `X-GoWA-Original-Contract: gowa-original-1`, exact device/chat/message headers, plaintext SHA256 and media type. MIME is supplied from the previously admitted signed metadata; consumers still validate content/type before extraction. Responses are private/no-store attachments. Error bodies contain only a stable code, without media paths, tokens or bytes.
+
+Incoming PN-only, directly stored media webhooks prospectively include signed `payload.original_media`: contract_version, device_jid, chat_jid, sender_jid, message_id, type, sha256, byte_size and mime_type. These fields come from the original event/protobuf before optional auto-download, not a current recipient alias or downloaded static path. Existing webhook/media fields remain compatible. No metadata is fabricated for outgoing/group/LID or digest-less inputs. View-once and ephemeral wrapped media are unsupported: current chat storage does not retain their inner media row, so the webhook does not claim a retrievable original for them.
+
+The compatibility `/download` route keeps its JSON/file behavior but now reads by exact client physical device, chat and message. Other message actions are outside this change.
+
+Local tests use real SQLite and synthetic SDK/HTTP boundaries; no WhatsApp session, remote retrieval or deployment is exercised. A reviewed immutable build pin and real account qualification remain separate prerequisites before a consumer enables this contract. The mutable `combined`/`latest` image tags are not proof that this code is installed.

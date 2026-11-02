@@ -1825,6 +1825,71 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorInternalServer'
+  /message/{message_id}/original:
+    get:
+      operationId: originalMessageMedia
+      tags: [message]
+      summary: Retrieve verified private original bytes for one admitted incoming message
+      description: |
+        Requires configured Basic authentication and explicit X-Device-Id. No default-device
+        fallback is accepted. The selected client's physical PN JID must match expected_device_jid.
+        Only the exact device/chat/message row and admitted SHA256 may supply bytes; no static copy
+        is created. At most 25 MiB plaintext, 20 seconds for provider retrieval.
+      parameters:
+        - $ref: '#/components/parameters/DeviceIdHeader'
+        - in: path
+          name: message_id
+          required: true
+          schema: {type: string, pattern: '^[A-Za-z0-9_-]{1,255}$'}
+        - in: query
+          name: chat_jid
+          required: true
+          schema: {type: string, pattern: '^[0-9]{1,20}@s\.whatsapp\.net$'}
+        - in: query
+          name: expected_device_jid
+          required: true
+          schema: {type: string, pattern: '^[0-9]{1,20}@s\.whatsapp\.net$'}
+        - in: query
+          name: expected_sha256
+          required: true
+          schema: {type: string, pattern: '^[0-9a-fA-F]{64}$'}
+        - in: query
+          name: mime_type
+          required: true
+          schema: {type: string, maxLength: 100}
+      responses:
+        '200':
+          description: Verified binary; private/no-store, attachment; no filename or public URL
+          headers:
+            X-GoWA-Original-Contract:
+              schema: {type: string, enum: [gowa-original-1]}
+            X-GoWA-Device-JID:
+              schema: {type: string}
+            X-GoWA-Chat-JID:
+              schema: {type: string}
+            X-GoWA-Message-ID:
+              schema: {type: string}
+            X-GoWA-Content-SHA256:
+              schema: {type: string}
+            X-GoWA-Media-Type:
+              schema: {type: string, enum: [image, audio, document]}
+          content:
+            application/octet-stream:
+              schema: {type: string, format: binary}
+        '401':
+          description: Authentication or explicit device selector missing
+        '404':
+          description: Exact scoped original not stored
+        '409':
+          description: Original identity, digest or selected physical device changed
+        '413':
+          description: Original exceeds fixed byte limit
+        '422':
+          description: Invalid exact PN identity, MIME or digest
+        '503':
+          description: Authentication unconfigured or provider retrieval unavailable
+        '504':
+          description: Retrieval deadline expired
   /message/{message_id}/download:
     get:
       operationId: downloadMessageMedia

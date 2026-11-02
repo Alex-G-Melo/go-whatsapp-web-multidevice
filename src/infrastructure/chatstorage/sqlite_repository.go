@@ -123,6 +123,22 @@ func (r *SQLiteRepository) GetMessageByIDAndDevice(deviceID, id string) (*domain
 	return message, err
 }
 
+// GetMessageByIDChatAndDevice returns only the original device's copy in one exact chat.
+func (r *SQLiteRepository) GetMessageByIDChatAndDevice(deviceID, chatJID, id string) (*domainChatStorage.Message, error) {
+	if strings.TrimSpace(deviceID) == "" || strings.TrimSpace(chatJID) == "" || strings.TrimSpace(id) == "" {
+		return nil, fmt.Errorf("device, chat and message identification required")
+	}
+	query := `SELECT id, chat_jid, device_id, sender, content, timestamp, is_from_me,
+		media_type, call_metadata, filename, url, media_key, file_sha256,
+		file_enc_sha256, file_length, referral_metadata, created_at, updated_at
+		FROM messages WHERE id = ? AND chat_jid = ? AND device_id = ?`
+	message, err := r.scanMessage(r.db.QueryRow(query, id, chatJID, deviceID))
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	return message, err
+}
+
 // GetMessageEdits returns the edit history for a specific message.
 func (r *SQLiteRepository) GetMessageEdits(originalMessageID, deviceID string) ([]*domainChatStorage.MessageEdit, error) {
 	query := `

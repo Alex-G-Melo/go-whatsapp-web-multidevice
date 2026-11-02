@@ -2,6 +2,7 @@ package whatsapp
 
 import (
 	"context"
+	"encoding/hex"
 	"fmt"
 	"regexp"
 	"strings"
@@ -239,6 +240,7 @@ func buildMessageBody(ctx context.Context, client *whatsmeow.Client, evt *events
 }
 
 func buildOptionalFields(ctx context.Context, client *whatsmeow.Client, evt *events.Message, msg *waE2E.Message, payload map[string]any) error {
+	buildOriginalMediaFields(client, evt, msg, payload)
 	if evt.IsViewOnce {
 		payload["view_once"] = true
 	}
@@ -440,4 +442,38 @@ func buildWebhookContactsArrayPayload(contacts []*waE2E.ContactMessage) []webhoo
 		result = append(result, buildWebhookContactPayload(contact))
 	}
 	return result
+}
+
+// Signed prospective metadata uses raw PN identities, never a resolved LID alias.
+func buildOriginalMediaFields(client *whatsmeow.Client, evt *events.Message, msg *waE2E.Message, payload map[string]any) {
+	// Chat storage currently retains only direct media protos. Do not advertise
+	// a retrievable original for disappearing/view-once wrappers it skips.
+	if client == nil || client.Store == nil || client.Store.ID == nil || evt.Info.IsFromMe ||
+		evt.IsViewOnce || evt.Message != msg {
+		return
+	}
+	device, chat, sender := client.Store.ID.ToNonAD(), evt.Info.Chat.ToNonAD(), evt.Info.Sender.ToNonAD()
+	if device.Server != types.DefaultUserServer || chat.Server != types.DefaultUserServer || sender != chat {
+		return
+	}
+	mediaType, _, _, _, digest, _, length := utils.ExtractMediaInfo(msg)
+	mediaMIME := ""
+	switch mediaType {
+	case "image":
+		mediaMIME = msg.GetImageMessage().GetMimetype()
+	case "audio":
+		mediaMIME = msg.GetAudioMessage().GetMimetype()
+	case "document":
+		mediaMIME = msg.GetDocumentMessage().GetMimetype()
+	default:
+		return
+	}
+	if len(digest) != 32 || length == 0 || mediaMIME == "" {
+		return
+	}
+	payload["original_media"] = map[string]any{
+		"contract_version": "gowa-original-1", "device_jid": device.String(), "chat_jid": chat.String(),
+		"sender_jid": sender.String(), "message_id": evt.Info.ID, "type": mediaType,
+		"sha256": hex.EncodeToString(digest), "byte_size": length, "mime_type": mediaMIME,
+	}
 }
