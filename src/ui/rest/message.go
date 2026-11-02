@@ -23,6 +23,7 @@ func InitRestMessage(app fiber.Router, service domainMessage.IMessageUsecase) Me
 	app.Post("/message/:message_id/star", rest.StarMessage)
 	app.Post("/message/:message_id/unstar", rest.UnstarMessage)
 	app.Get("/message/:message_id/download", rest.DownloadMedia)
+	app.Get("/message/:message_id/original", rest.OriginalMedia)
 	return rest
 }
 

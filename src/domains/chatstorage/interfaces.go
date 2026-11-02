@@ -26,7 +26,8 @@ type IChatStorageRepository interface {
 	StoreMessage(message *Message) error
 	StoreMessageEdit(edit *MessageEdit) error
 	StoreMessagesBatch(messages []*Message) error
-	GetMessageByID(id string) (*Message, error)                    // New method for efficient ID-only search
+	GetMessageByID(id string) (*Message, error) // New method for efficient ID-only search
+	GetMessageByIDChatAndDevice(deviceID, chatJID, id string) (*Message, error)
 	GetMessageByIDAndDevice(deviceID, id string) (*Message, error) // Device-scoped ID lookup for device-isolated flows
 	GetMessageEdits(originalMessageID, deviceID string) ([]*MessageEdit, error)
 	GetMessages(filter *MessageFilter) ([]*Message, error)

@@ -16,6 +16,7 @@ type IMessageActions interface {
 type IMessageManagement interface {
 	DeleteMessage(ctx context.Context, request DeleteRequest) (err error)
 	StarMessage(ctx context.Context, request StarRequest) (err error)
+	OriginalMedia(ctx context.Context, request OriginalMediaRequest) (response OriginalMediaResponse, err error)
 	DownloadMedia(ctx context.Context, request DownloadMediaRequest) (response DownloadMediaResponse, err error)
 }
 
