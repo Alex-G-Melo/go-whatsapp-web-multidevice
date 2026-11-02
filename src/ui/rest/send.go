@@ -38,6 +38,9 @@ func (controller *Send) SendText(c *fiber.Ctx) error {
 	response, err := controller.Service.SendText(whatsapp.ContextWithDevice(c.UserContext(), getDeviceFromCtx(c)), request)
 	utils.PanicIfNeeded(err)
 
+	if response.DeviceJID != "" {
+		c.Set("X-GoWA-Send-Contract", domainSend.PhysicalSendContract)
+	}
 	return c.JSON(utils.ResponseData{
 		Status:  200,
 		Code:    "SUCCESS",
@@ -63,6 +66,9 @@ func (controller *Send) SendImage(c *fiber.Ctx) error {
 	response, err := controller.Service.SendImage(whatsapp.ContextWithDevice(c.UserContext(), getDeviceFromCtx(c)), request)
 	utils.PanicIfNeeded(err)
 
+	if response.DeviceJID != "" {
+		c.Set("X-GoWA-Send-Contract", domainSend.PhysicalSendContract)
+	}
 	return c.JSON(utils.ResponseData{
 		Status:  200,
 		Code:    "SUCCESS",
@@ -85,6 +91,9 @@ func (controller *Send) SendFile(c *fiber.Ctx) error {
 	response, err := controller.Service.SendFile(whatsapp.ContextWithDevice(c.UserContext(), getDeviceFromCtx(c)), request)
 	utils.PanicIfNeeded(err)
 
+	if response.DeviceJID != "" {
+		c.Set("X-GoWA-Send-Contract", domainSend.PhysicalSendContract)
+	}
 	return c.JSON(utils.ResponseData{
 		Status:  200,
 		Code:    "SUCCESS",
@@ -108,6 +117,9 @@ func (controller *Send) SendVideo(c *fiber.Ctx) error {
 	response, err := controller.Service.SendVideo(whatsapp.ContextWithDevice(c.UserContext(), getDeviceFromCtx(c)), request)
 	utils.PanicIfNeeded(err)
 
+	if response.DeviceJID != "" {
+		c.Set("X-GoWA-Send-Contract", domainSend.PhysicalSendContract)
+	}
 	return c.JSON(utils.ResponseData{
 		Status:  200,
 		Code:    "SUCCESS",
@@ -131,6 +143,9 @@ func (controller *Send) SendSticker(c *fiber.Ctx) error {
 	response, err := controller.Service.SendSticker(whatsapp.ContextWithDevice(c.UserContext(), getDeviceFromCtx(c)), request)
 	utils.PanicIfNeeded(err)
 
+	if response.DeviceJID != "" {
+		c.Set("X-GoWA-Send-Contract", domainSend.PhysicalSendContract)
+	}
 	return c.JSON(utils.ResponseData{
 		Status:  200,
 		Code:    "SUCCESS",
@@ -149,6 +164,9 @@ func (controller *Send) SendContact(c *fiber.Ctx) error {
 	response, err := controller.Service.SendContact(whatsapp.ContextWithDevice(c.UserContext(), getDeviceFromCtx(c)), request)
 	utils.PanicIfNeeded(err)
 
+	if response.DeviceJID != "" {
+		c.Set("X-GoWA-Send-Contract", domainSend.PhysicalSendContract)
+	}
 	return c.JSON(utils.ResponseData{
 		Status:  200,
 		Code:    "SUCCESS",
@@ -167,6 +185,9 @@ func (controller *Send) SendLink(c *fiber.Ctx) error {
 	response, err := controller.Service.SendLink(whatsapp.ContextWithDevice(c.UserContext(), getDeviceFromCtx(c)), request)
 	utils.PanicIfNeeded(err)
 
+	if response.DeviceJID != "" {
+		c.Set("X-GoWA-Send-Contract", domainSend.PhysicalSendContract)
+	}
 	return c.JSON(utils.ResponseData{
 		Status:  200,
 		Code:    "SUCCESS",
@@ -185,6 +206,9 @@ func (controller *Send) SendLocation(c *fiber.Ctx) error {
 	response, err := controller.Service.SendLocation(whatsapp.ContextWithDevice(c.UserContext(), getDeviceFromCtx(c)), request)
 	utils.PanicIfNeeded(err)
 
+	if response.DeviceJID != "" {
+		c.Set("X-GoWA-Send-Contract", domainSend.PhysicalSendContract)
+	}
 	return c.JSON(utils.ResponseData{
 		Status:  200,
 		Code:    "SUCCESS",
@@ -208,6 +232,9 @@ func (controller *Send) SendAudio(c *fiber.Ctx) error {
 	response, err := controller.Service.SendAudio(whatsapp.ContextWithDevice(c.UserContext(), getDeviceFromCtx(c)), request)
 	utils.PanicIfNeeded(err)
 
+	if response.DeviceJID != "" {
+		c.Set("X-GoWA-Send-Contract", domainSend.PhysicalSendContract)
+	}
 	return c.JSON(utils.ResponseData{
 		Status:  200,
 		Code:    "SUCCESS",
@@ -226,6 +253,9 @@ func (controller *Send) SendPoll(c *fiber.Ctx) error {
 	response, err := controller.Service.SendPoll(whatsapp.ContextWithDevice(c.UserContext(), getDeviceFromCtx(c)), request)
 	utils.PanicIfNeeded(err)
 
+	if response.DeviceJID != "" {
+		c.Set("X-GoWA-Send-Contract", domainSend.PhysicalSendContract)
+	}
 	return c.JSON(utils.ResponseData{
 		Status:  200,
 		Code:    "SUCCESS",
@@ -242,6 +272,9 @@ func (controller *Send) SendPresence(c *fiber.Ctx) error {
 	response, err := controller.Service.SendPresence(whatsapp.ContextWithDevice(c.UserContext(), getDeviceFromCtx(c)), request)
 	utils.PanicIfNeeded(err)
 
+	if response.DeviceJID != "" {
+		c.Set("X-GoWA-Send-Contract", domainSend.PhysicalSendContract)
+	}
 	return c.JSON(utils.ResponseData{
 		Status:  200,
 		Code:    "SUCCESS",
@@ -260,6 +293,9 @@ func (controller *Send) SendChatPresence(c *fiber.Ctx) error {
 	response, err := controller.Service.SendChatPresence(whatsapp.ContextWithDevice(c.UserContext(), getDeviceFromCtx(c)), request)
 	utils.PanicIfNeeded(err)
 
+	if response.DeviceJID != "" {
+		c.Set("X-GoWA-Send-Contract", domainSend.PhysicalSendContract)
+	}
 	return c.JSON(utils.ResponseData{
 		Status:  200,
 		Code:    "SUCCESS",

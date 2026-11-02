@@ -129,9 +129,14 @@ func (service serviceSend) SendText(ctx context.Context, request domainSend.Mess
 	}
 
 	client := whatsapp.ClientFromContext(ctx)
+	ctx, err = whatsapp.ContextWithSendAccount(ctx, client, request.ExpectedDeviceJID)
+	if err != nil {
+		return response, err
+	}
 	if client == nil {
 		return response, pkgError.ErrWaCLI
 	}
+	response.DeviceJID = request.ExpectedDeviceJID
 
 	dataWaRecipient, err := utils.ValidateJidWithLogin(client, request.BaseRequest.Phone)
 	if err != nil {
@@ -193,9 +198,14 @@ func (service serviceSend) SendImage(ctx context.Context, request domainSend.Ima
 	}
 
 	client := whatsapp.ClientFromContext(ctx)
+	ctx, err = whatsapp.ContextWithSendAccount(ctx, client, request.ExpectedDeviceJID)
+	if err != nil {
+		return response, err
+	}
 	if client == nil {
 		return response, pkgError.ErrWaCLI
 	}
+	response.DeviceJID = request.ExpectedDeviceJID
 
 	dataWaRecipient, err := utils.ValidateJidWithLogin(client, request.Phone)
 	if err != nil {
@@ -362,9 +372,14 @@ func (service serviceSend) SendFile(ctx context.Context, request domainSend.File
 	}
 
 	client := whatsapp.ClientFromContext(ctx)
+	ctx, err = whatsapp.ContextWithSendAccount(ctx, client, request.ExpectedDeviceJID)
+	if err != nil {
+		return response, err
+	}
 	if client == nil {
 		return response, pkgError.ErrWaCLI
 	}
+	response.DeviceJID = request.ExpectedDeviceJID
 
 	dataWaRecipient, err := utils.ValidateJidWithLogin(client, request.BaseRequest.Phone)
 	if err != nil {
@@ -725,9 +740,14 @@ func (service serviceSend) SendVideo(ctx context.Context, request domainSend.Vid
 	}
 
 	client := whatsapp.ClientFromContext(ctx)
+	ctx, err = whatsapp.ContextWithSendAccount(ctx, client, request.ExpectedDeviceJID)
+	if err != nil {
+		return response, err
+	}
 	if client == nil {
 		return response, pkgError.ErrWaCLI
 	}
+	response.DeviceJID = request.ExpectedDeviceJID
 
 	dataWaRecipient, err := utils.ValidateJidWithLogin(client, request.BaseRequest.Phone)
 	if err != nil {
@@ -848,6 +868,9 @@ func (service serviceSend) SendVideo(ctx context.Context, request domainSend.Vid
 	}
 	uploaded, err := service.uploadMedia(ctx, client, whatsmeow.MediaVideo, dataWaVideo, dataWaRecipient)
 	if err != nil {
+		if errors.Is(err, pkgError.ErrSendAccountMismatch) {
+			return response, err
+		}
 		return response, pkgError.InternalServerError(fmt.Sprintf("Failed to upload file: %v", err))
 	}
 	dataWaThumbnail, err := os.ReadFile(videoThumbnail)
@@ -908,9 +931,14 @@ func (service serviceSend) SendContact(ctx context.Context, request domainSend.C
 	}
 
 	client := whatsapp.ClientFromContext(ctx)
+	ctx, err = whatsapp.ContextWithSendAccount(ctx, client, request.ExpectedDeviceJID)
+	if err != nil {
+		return response, err
+	}
 	if client == nil {
 		return response, pkgError.ErrWaCLI
 	}
+	response.DeviceJID = request.ExpectedDeviceJID
 
 	dataWaRecipient, err := utils.ValidateJidWithLogin(client, request.BaseRequest.Phone)
 	if err != nil {
@@ -962,9 +990,14 @@ func (service serviceSend) SendLink(ctx context.Context, request domainSend.Link
 	}
 
 	client := whatsapp.ClientFromContext(ctx)
+	ctx, err = whatsapp.ContextWithSendAccount(ctx, client, request.ExpectedDeviceJID)
+	if err != nil {
+		return response, err
+	}
 	if client == nil {
 		return response, pkgError.ErrWaCLI
 	}
+	response.DeviceJID = request.ExpectedDeviceJID
 
 	dataWaRecipient, err := utils.ValidateJidWithLogin(client, request.BaseRequest.Phone)
 	if err != nil {
@@ -1048,9 +1081,14 @@ func (service serviceSend) SendLocation(ctx context.Context, request domainSend.
 	}
 
 	client := whatsapp.ClientFromContext(ctx)
+	ctx, err = whatsapp.ContextWithSendAccount(ctx, client, request.ExpectedDeviceJID)
+	if err != nil {
+		return response, err
+	}
 	if client == nil {
 		return response, pkgError.ErrWaCLI
 	}
+	response.DeviceJID = request.ExpectedDeviceJID
 
 	dataWaRecipient, err := utils.ValidateJidWithLogin(client, request.BaseRequest.Phone)
 	if err != nil {
@@ -1100,9 +1138,14 @@ func (service serviceSend) SendAudio(ctx context.Context, request domainSend.Aud
 	}
 
 	client := whatsapp.ClientFromContext(ctx)
+	ctx, err = whatsapp.ContextWithSendAccount(ctx, client, request.ExpectedDeviceJID)
+	if err != nil {
+		return response, err
+	}
 	if client == nil {
 		return response, pkgError.ErrWaCLI
 	}
+	response.DeviceJID = request.ExpectedDeviceJID
 
 	dataWaRecipient, err := utils.ValidateJidWithLogin(client, request.BaseRequest.Phone)
 	if err != nil {
@@ -1254,6 +1297,9 @@ func (service serviceSend) SendAudio(ctx context.Context, request domainSend.Aud
 	// upload to WhatsApp servers
 	audioUploaded, err := service.uploadMedia(ctx, client, whatsmeow.MediaAudio, audioBytes, dataWaRecipient)
 	if err != nil {
+		if errors.Is(err, pkgError.ErrSendAccountMismatch) {
+			return response, err
+		}
 		err = pkgError.WaUploadMediaError(fmt.Sprintf("Failed to upload audio: %v", err))
 		return response, err
 	}
@@ -1307,9 +1353,14 @@ func (service serviceSend) SendPoll(ctx context.Context, request domainSend.Poll
 	}
 
 	client := whatsapp.ClientFromContext(ctx)
+	ctx, err = whatsapp.ContextWithSendAccount(ctx, client, request.ExpectedDeviceJID)
+	if err != nil {
+		return response, err
+	}
 	if client == nil {
 		return response, pkgError.ErrWaCLI
 	}
+	response.DeviceJID = request.ExpectedDeviceJID
 
 	dataWaRecipient, err := utils.ValidateJidWithLogin(client, request.BaseRequest.Phone)
 	if err != nil {
@@ -1365,9 +1416,14 @@ func (service serviceSend) SendChatPresence(ctx context.Context, request domainS
 	}
 
 	client := whatsapp.ClientFromContext(ctx)
+	ctx, err = whatsapp.ContextWithSendAccount(ctx, client, request.ExpectedDeviceJID)
+	if err != nil {
+		return response, err
+	}
 	if client == nil {
 		return response, pkgError.ErrWaCLI
 	}
+	response.DeviceJID = request.ExpectedDeviceJID
 
 	userJid, err := utils.ValidateJidWithLogin(client, request.Phone)
 	if err != nil {
@@ -1391,6 +1447,9 @@ func (service serviceSend) SendChatPresence(ctx context.Context, request domainS
 		return response, fmt.Errorf("invalid action: %s. Must be 'start' or 'stop'", request.Action)
 	}
 
+	if err = whatsapp.CheckSendAccount(ctx, client); err != nil {
+		return response, err
+	}
 	err = client.SendChatPresence(ctx, userJid, presenceType, types.ChatPresenceMedia(""))
 	if err != nil {
 		return response, err
@@ -1455,9 +1514,14 @@ func (service serviceSend) SendSticker(ctx context.Context, request domainSend.S
 	}
 
 	client := whatsapp.ClientFromContext(ctx)
+	ctx, err = whatsapp.ContextWithSendAccount(ctx, client, request.ExpectedDeviceJID)
+	if err != nil {
+		return response, err
+	}
 	if client == nil {
 		return response, pkgError.ErrWaCLI
 	}
+	response.DeviceJID = request.ExpectedDeviceJID
 
 	dataWaRecipient, err := utils.ValidateJidWithLogin(client, request.Phone)
 	if err != nil {
@@ -1556,6 +1620,9 @@ func (service serviceSend) SendSticker(ctx context.Context, request domainSend.S
 		// Upload sticker to WhatsApp servers
 		stickerUploaded, err := service.uploadMedia(ctx, client, whatsmeow.MediaImage, stickerBytes, dataWaRecipient)
 		if err != nil {
+			if errors.Is(err, pkgError.ErrSendAccountMismatch) {
+				return response, err
+			}
 			return response, pkgError.WaUploadMediaError(fmt.Sprintf("failed to upload sticker: %v", err))
 		}
 
@@ -1720,6 +1787,9 @@ func (service serviceSend) SendSticker(ctx context.Context, request domainSend.S
 	// Upload sticker to WhatsApp servers
 	stickerUploaded, err := service.uploadMedia(ctx, client, whatsmeow.MediaImage, stickerBytes, dataWaRecipient)
 	if err != nil {
+		if errors.Is(err, pkgError.ErrSendAccountMismatch) {
+			return response, err
+		}
 		return response, pkgError.WaUploadMediaError(fmt.Sprintf("failed to upload sticker: %v", err))
 	}
 
@@ -1767,6 +1837,9 @@ func (service serviceSend) SendSticker(ctx context.Context, request domainSend.S
 }
 
 func (service serviceSend) uploadMedia(ctx context.Context, client *whatsmeow.Client, mediaType whatsmeow.MediaType, media []byte, recipient types.JID) (uploaded whatsmeow.UploadResponse, err error) {
+	if err = whatsapp.CheckSendAccount(ctx, client); err != nil {
+		return uploaded, err
+	}
 	if recipient.Server == types.NewsletterServer {
 		uploaded, err = client.UploadNewsletter(ctx, media, mediaType)
 	} else {
