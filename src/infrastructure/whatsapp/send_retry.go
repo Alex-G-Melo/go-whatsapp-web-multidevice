@@ -56,7 +56,13 @@ func SendMessageWithReachoutRetry(ctx context.Context, client *whatsmeow.Client,
 		return whatsmeow.SendResponse{}, err
 	}
 	resp, err := sendMessageFn(ctx, client, recipient, msg)
-	if err == nil || !IsReachoutTimelockError(err) || !isUserJID(recipient) {
+	if err == nil {
+		if err := CheckSendAccountResult(ctx, client); err != nil {
+			return whatsmeow.SendResponse{}, err
+		}
+		return resp, nil
+	}
+	if !IsReachoutTimelockError(err) || !isUserJID(recipient) {
 		return resp, err
 	}
 
@@ -80,6 +86,9 @@ func SendMessageWithReachoutRetry(ctx context.Context, client *whatsmeow.Client,
 	if err != nil {
 		logrus.Warnf("Retry send to %s after pre-warm still failed: %v", recipient.String(), err)
 	} else {
+		if err := CheckSendAccountResult(ctx, client); err != nil {
+			return whatsmeow.SendResponse{}, err
+		}
 		logrus.Infof("Retry send to %s after pre-warm succeeded", recipient.String())
 	}
 	return resp, err

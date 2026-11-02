@@ -46,3 +46,11 @@ func CheckSendAccount(ctx context.Context, client *whatsmeow.Client) error {
 	}
 	return nil
 }
+
+// An SDK success followed by identity drift is ambiguous, never a safe resend.
+func CheckSendAccountResult(ctx context.Context, client *whatsmeow.Client) error {
+	if err := CheckSendAccount(ctx, client); err != nil {
+		return pkgError.ErrSendAccountOutcomeUnknown
+	}
+	return nil
+}

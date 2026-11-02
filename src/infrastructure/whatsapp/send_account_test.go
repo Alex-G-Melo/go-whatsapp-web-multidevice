@@ -148,3 +148,41 @@ func TestPhysicalSendAccountRechecksAfterReachoutPrewarm(t *testing.T) {
 		t.Fatalf("retry must not send after reassignment: sends=%d subscribes=%d error=%v", calls, subscribes, err)
 	}
 }
+
+func TestPhysicalSendAccountDriftDuringSuccessfulSDKIsUnknownWithoutResend(t *testing.T) {
+	beforeSend, beforeSubscribe := sendMessageFn, subscribePresenceFn
+	t.Cleanup(func() { sendMessageFn, subscribePresenceFn = beforeSend, beforeSubscribe })
+	for _, retry := range []bool{false, true} {
+		t.Run(map[bool]string{false: "first send", true: "463 retry"}[retry], func(t *testing.T) {
+			ctx, instance, client, expected := sendAccountFixture()
+			bound, err := ContextWithSendAccount(ctx, client, expected)
+			if err != nil {
+				t.Fatal(err)
+			}
+			calls := 0
+			sendMessageFn = func(_ context.Context, got *whatsmeow.Client, _ types.JID, _ *waE2E.Message) (whatsmeow.SendResponse, error) {
+				calls++
+				if got != client {
+					t.Fatal("send must use captured client")
+				}
+				if retry && calls == 1 {
+					return whatsmeow.SendResponse{}, reachoutErr()
+				}
+				other := types.NewJID("15550000009", types.DefaultUserServer)
+				client.Store.ID = &other
+				instance.SetClient(client)
+				return whatsmeow.SendResponse{ID: "ALREADY_SENT"}, nil
+			}
+			subscribePresenceFn = func(context.Context, *whatsmeow.Client, types.JID) error { return nil }
+			response, err := SendMessageWithReachoutRetry(bound, client, types.NewJID("15550000002", types.DefaultUserServer), &waE2E.Message{})
+			wantCalls := 1
+			if retry {
+				wantCalls = 2
+			}
+			if !errors.Is(err, pkgError.ErrSendAccountOutcomeUnknown) || response.ID != "" || calls != wantCalls ||
+				pkgError.ErrSendAccountOutcomeUnknown.StatusCode() != 503 {
+				t.Fatalf("must withhold success proof without resending: %+v, %v, calls=%d", response, err, calls)
+			}
+		})
+	}
+}

@@ -1454,6 +1454,9 @@ func (service serviceSend) SendChatPresence(ctx context.Context, request domainS
 	if err != nil {
 		return response, err
 	}
+	if err = whatsapp.CheckSendAccountResult(ctx, client); err != nil {
+		return response, err
+	}
 
 	response.MessageID = messageID
 	response.Status = statusMessage
